@@ -1,38 +1,18 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
+#include<stdio.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<unistd.h>
+#include<fcntl.h>
+ int main(void){
+     int fd;
+     fd = open("program4",O_CREAT|O_EXCL,0644);
+     if(fd==-1){
+       perror("Error opening a file");
+       return 1;
+     }
+     
+     printf("fd=%d",fd);
 
-int main() {
-    // Path to the existing file
-    const char* filename = "my1_file.txt";
-
-    // Open the file with read-write mode and O_EXCL flag
-    int fd = open(filename, O_RDWR | O_EXCL);
-
-    if (fd == -1) {
-        if (errno == EEXIST) {
-            printf("File already exists. Opening in read-write mode.\n");
-
-            // Try opening the file without O_EXCL flag
-            fd = open(filename, O_RDWR);
-            
-            if (fd == -1) {
-                perror("Error opening file");
-                return 1;
-            }
-        } else {
-            perror("Error opening file");
-            return 1;
-        }
-    } else {
-        printf("File opened successfully in read-write mode.\n");
-    }
-
-
-    // Close the file descriptor
-    close(fd);
-
-    return 0;
-}
+     close(fd);
+     return 0;
+ }
