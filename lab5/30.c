@@ -12,9 +12,9 @@ void makeDaemon(time_t now, time_t actual) {
         printf("It is going to wait until correct time\n");
         do {
                 time(&now);
-        } while (difftime(actual, now) > 0);
+        } while (difftime(actual, now) != 0);
         printf("Time matched\n");
-        system("30.sh");
+        system("/home/bunty/Desktop/sslab/lab5/30.sh");
         exit(0);
 }
 
@@ -24,8 +24,8 @@ int main() {
         time(&now);
         deadline = localtime(&now);
 
-        deadline->tm_hour = 11;
-        deadline->tm_min = 44;
+        deadline->tm_hour = 22;
+        deadline->tm_min = 26;
         deadline->tm_sec = 0;
         actual = mktime(deadline);
         if(!fork()) {
