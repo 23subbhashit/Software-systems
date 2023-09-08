@@ -4,7 +4,7 @@ Name : 6.c
 Author : Subbhashit 
 Description : 
         6. Write a program to take input from STDIN and display on STDOUT. Use only read/write system calls           
-Date: 18th Aug, 2023.
+Date: 17th Aug, 2023.
 ============================================================================
 */
 #include <stdio.h>

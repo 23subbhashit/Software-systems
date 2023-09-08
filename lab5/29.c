@@ -5,7 +5,7 @@ Author : Subbhashit
 Description : 
         29. Write a program to get scheduling policy and modify the scheduling policy (SCHED_FIFO,
         SCHED_RR).           
-Date: 18th Aug, 2023.
+Date: 6th Sept,, 2023.
 ============================================================================
 */
 #define _GNU_SOURCE

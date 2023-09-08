@@ -8,7 +8,7 @@ Description :
           b. Implement read lock
         Create three records in a file. Whenever you access a particular record, first lock it then modify/access
         to avoid race condition.             
-Date: 18th Aug, 2023.
+Date: 25th Aug, 2023.
 ============================================================================
 */
 #include <fcntl.h>

@@ -7,7 +7,7 @@ Description :
                 a. soft link (symlink system call)
                 b. hard link (link system call)
                 c. FIFO (mkfifo Library Function or mknod system call           
-Date: 18th Aug, 2023.
+Date: 10th Aug, 2023.
 ============================================================================
 */
 #include<stdio.h>

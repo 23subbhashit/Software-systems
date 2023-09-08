@@ -4,7 +4,7 @@ Name : 24.c
 Author : Subbhashit 
 Description : 
         24. Write a program to create an orphan process.           
-Date: 18th Aug, 2023.
+Date: 2nd Sept, 2023.
 ============================================================================
 */
 #include<unistd.h>

@@ -4,7 +4,7 @@ Name : 30.c
 Author : Subbhashit 
 Description : 
         30. Write a program to run a script at a specific time using a Daemon process.           
-Date: 18th Aug, 2023.
+Date: 6th Sept,, 2023.
 ============================================================================
 */
 #include<stdio.h>

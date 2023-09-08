@@ -5,7 +5,7 @@ Author : Subbhashit
 Description : 
         5. Write a program to create five new files with infinite loop. Execute the program in the background
         and check the file descriptor table at /proc/pid/fd.           
-Date: 18th Aug, 2023.
+Date: 17th Aug, 2023.
 ============================================================================
 */
 #include<stdio.h>
