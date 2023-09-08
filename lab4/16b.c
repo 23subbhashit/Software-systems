@@ -1,3 +1,16 @@
+/*
+============================================================================
+Name : 16b.c
+Author : Subbhashit 
+Description : 
+        16. Write a program to perform mandatory locking.
+ 			a. Implement write lock
+ 			b. Implement read lock
+           
+Date: 18th Aug, 2023.
+============================================================================
+*/
+#inc
 #include<unistd.h>
 #include<fcntl.h>
 #include<sys/types.h>

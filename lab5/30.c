@@ -1,3 +1,12 @@
+/*
+============================================================================
+Name : 30.c
+Author : Subbhashit 
+Description : 
+        30. Write a program to run a script at a specific time using a Daemon process.           
+Date: 18th Aug, 2023.
+============================================================================
+*/
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
@@ -25,7 +34,7 @@ int main() {
         deadline = localtime(&now);
 
         deadline->tm_hour = 22;
-        deadline->tm_min = 26;
+        deadline->tm_min = 31;
         deadline->tm_sec = 0;
         actual = mktime(deadline);
         if(!fork()) {

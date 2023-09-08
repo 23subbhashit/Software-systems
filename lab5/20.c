@@ -1,3 +1,12 @@
+/*
+============================================================================
+Name : 20.c
+Author : Subbhashit 
+Description : 
+        20. Find out the priority of your running program. Modify the priority with nice command.            
+Date: 18th Aug, 2023.
+============================================================================
+*/
 #include<stdio.h>
 #include<unistd.h>
 #include <sys/resource.h>

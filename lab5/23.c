@@ -1,3 +1,12 @@
+/*
+============================================================================
+Name : 23.c
+Author : Subbhashit 
+Description : 
+        23. Write a program to create a Zombie state of the running program          
+Date: 18th Aug, 2023.
+============================================================================
+*/
 //cat /proc/process_id/stat
 
 #include<stdio.h>
