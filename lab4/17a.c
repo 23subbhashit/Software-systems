@@ -26,7 +26,7 @@ int main(int argc, char *argv[]){
    
    db.ticket_no=5;
    
-   int fd = open(argv[1],O_RDWR);
+   int fd = open(argv[1],O_RDWR|O_CREAT);
    if(fd==-1){
      perror("Error opening a file");
      return 1;

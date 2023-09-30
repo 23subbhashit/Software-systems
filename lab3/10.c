@@ -21,7 +21,7 @@ int main(int argc , char* argv[]) {
         return 0;
     }
     int fd;
-    char data1[] = "ABCDEFGHIJ";
+    int data1 = 10;
     char data2[] = "klmnopqrst";
 
     // Open the file in read-write mode or create if not exists
@@ -32,7 +32,7 @@ int main(int argc , char* argv[]) {
     }
 
     // Write the first 10 bytes
-    ssize_t bytesWritten = write(fd, data1, sizeof(data1) - 1);
+    ssize_t bytesWritten = write(fd, &data1, sizeof(data1) - 1);
     if (bytesWritten == -1) {
         perror("Error writing data1");
         close(fd);

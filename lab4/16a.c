@@ -20,7 +20,7 @@ int main(int argc , char* argv[])
 {
 	struct flock lock;
 	int fd;
-	fd=open(argv[1],O_RDWR);
+	fd=open(argv[1],O_WRONLY);
 	lock.l_type=F_WRLCK;
 	lock.l_whence=SEEK_SET;
 	lock.l_start=0;
