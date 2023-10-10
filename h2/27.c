@@ -52,7 +52,7 @@ int main() {
     } else {
         printf("Received Message (with IPC_NOWAIT flag): %s\n", message.msg_text);
     }
-    /
+    
     msgctl(msqid, IPC_RMID, NULL);
     return 0;
 }
