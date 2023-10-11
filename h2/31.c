@@ -1,3 +1,14 @@
+/*
+============================================================================
+Name : 31.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to create a semaphore and initialize value to the semaphore.
+           a. create a binary semaphore
+           b. create a counting semaphore
+Date: 1st Octuber 2023.
+============================================================================
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>

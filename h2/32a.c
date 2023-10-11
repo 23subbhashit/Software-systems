@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : 32a.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to implement semaphore to protect any critical section.
+              a. rewrite the ticket number creation program using semaphore
+Date: 4th Octuber 2023.
+============================================================================
+*/
 #include<sys/ipc.h>   
 #include<sys/sem.h>   
 #include<sys/types.h> 

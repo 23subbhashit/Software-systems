@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : 30.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to create a shared memory.
+            a. write some data to the shared memory
+Date: 3rd Octuber 2023.
+============================================================================
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

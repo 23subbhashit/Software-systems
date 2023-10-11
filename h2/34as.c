@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : 34as.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to create a concurrent server.
+            a. use fork
+Date: 4th Octuber 2023.
+============================================================================
+*/
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -1,3 +1,12 @@
+/*
+============================================================================
+Name : 29.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to remove the message queue.
+Date: 1st Octuber 2023.
+============================================================================
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>

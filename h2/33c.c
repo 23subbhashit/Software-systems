@@ -1,3 +1,12 @@
+/*
+============================================================================
+Name : 33_client.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to communicate between two machines using socket.
+Date: 3rd Octuber 2023.
+============================================================================
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

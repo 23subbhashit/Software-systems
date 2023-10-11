@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : 27.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to receive messages from the message queue.
+            a. with 0 as a flag
+Date: 2nd Octuber 2023.
+============================================================================
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

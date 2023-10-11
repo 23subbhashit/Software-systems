@@ -1,3 +1,12 @@
+/*
+============================================================================
+Name : 26.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to send messages to the message queue. Check $ipcs -q
+Date: 2nd Octuber 2023.
+============================================================================
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

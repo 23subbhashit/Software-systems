@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : 32c.c
+Author : Subbhashit Mukherjee
+Description : 
+         Write a program to implement semaphore to protect any critical section.
+           c. protect multiple pseudo resources ( may be two) using counting semaphore
+Date: 4th Octuber 2023.
+============================================================================
+*/
 #include <sys/ipc.h>   
 #include <sys/sem.h>   
 #include <sys/types.h> 
