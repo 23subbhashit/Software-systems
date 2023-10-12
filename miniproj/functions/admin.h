@@ -58,10 +58,10 @@ int admin_operation_handler(int connFD)
                 get_faculty_details(connFD);
                 break;
             case 5:
-                //activate_student(connFD);
+                activate_student(connFD);
                 break;
             case 6:
-                //block_student(connFD);
+                block_student(connFD);
                 break;
             case 7:
                 modify_student_info(connFD);
@@ -86,7 +86,218 @@ int admin_operation_handler(int connFD)
     return 1;
 }
 
+int block_student(int connFD){
+    ssize_t readBytes, writeBytes;             
+    char readBuffer[1000], writeBuffer[10000]; 
+    char tempBuffer[1000];
+    struct Student student;
+    int studentfd;
+    struct flock lock = {F_WRLCK, SEEK_SET, 0, sizeof(struct Student), getpid()};
+    writeBytes = write(connFD,ENTER_BLOCK_ID,strlen(ENTER_BLOCK_ID));
+    if(writeBytes==-1){
+        perror("Error writing statement block id to client");
+        return 0;
+    }
 
+    readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+    if(readBytes==-1){
+        perror("error reading block id response from client");
+        return 0;
+    }
+
+    char *ftPosition = strstr(readBuffer, "ST-");
+    char *numberStart = NULL;
+    int studentID;
+
+    if(ftPosition!=NULL) {
+        numberStart = ftPosition + strlen("ST-");
+        // Convert the numeric part to an integer
+        studentID = atoi(numberStart);
+    }
+    else{
+        write(connFD,"wrong studentid ^",17);
+        readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+        return 0;
+    }
+    studentfd = open(STUDENT_FILE,O_RDONLY);
+    int offset = lseek(studentfd,(studentID-1)*sizeof(struct Student),SEEK_SET);
+    if(offset == -1){
+        perror("Error while seeking to required student record!");
+        return 0;
+    }
+    lock.l_type = F_RDLCK;
+    lock.l_start = offset;
+    int lockingStatus = fcntl(studentfd, F_SETLKW, &lock);
+    if(lockingStatus == -1){
+        perror("Error while obtaining read lock on student record!");
+        return 0;
+    }
+
+    readBytes = read(studentfd, &student, sizeof(struct Student));
+    if(readBytes == -1){
+        perror("Error while reading student record from the file!");
+        return 0;
+    }
+    else if(readBytes==0){
+        write(connFD,"wrong student id ^",18);
+        readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+        return 0;
+    }
+    lock.l_type = F_UNLCK;
+    lockingStatus = fcntl(studentfd, F_SETLK, &lock);   
+    close(studentfd);
+
+    if(strcmp(student.access,"blocked")==0){
+       write(connFD,"Already blocked ^",17);
+       readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+       return 0;
+    } 
+    
+    strcpy(student.access,"blocked");
+  
+    studentfd = open(STUDENT_FILE,O_WRONLY);
+    if(studentfd == -1){
+        perror("Error while opening student file");
+        return 0;
+    }
+    offset = lseek(studentfd, (studentID-1) * sizeof(struct Student), SEEK_SET);
+    if(offset == -1){
+        perror("Error while seeking to required student record!");
+        return 0;
+    }
+    lock.l_type = F_WRLCK;
+    lock.l_start = offset;
+    lockingStatus = fcntl(studentfd, F_SETLKW, &lock);
+    if(lockingStatus == -1){
+        perror("Error while obtaining write lock on student record!");
+        return 0;
+    }
+    
+    writeBytes = write(studentfd, &student, sizeof(struct Student));
+    if(writeBytes == -1){
+        perror("Error while writing update student info into file");
+        return 0;            
+    }
+
+    lock.l_type = F_UNLCK;
+    fcntl(studentfd, F_SETLKW, &lock);
+    close(studentfd);
+
+    writeBytes = write(connFD, "student blocked successfully ^",30);
+    if(writeBytes == -1){
+        perror("Error while writing student block success info to client");
+        return 0;            
+    }
+    readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+    return 1; 
+}
+
+int activate_student(int connFD){
+    ssize_t readBytes, writeBytes;             
+    char readBuffer[1000], writeBuffer[10000]; 
+    char tempBuffer[1000];
+    struct Student student;
+    int studentfd;
+    struct flock lock = {F_WRLCK, SEEK_SET, 0, sizeof(struct Student), getpid()};
+    writeBytes = write(connFD,ENTER_ACTIVATE_ID,strlen(ENTER_ACTIVATE_ID));
+    if(writeBytes==-1){
+        perror("Error writing statement activate id to client");
+        return 0;
+    }
+
+    readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+    if(readBytes==-1){
+        perror("error reading activate id response from client");
+        return 0;
+    }
+
+    char *ftPosition = strstr(readBuffer, "ST-");
+    char *numberStart = NULL;
+    int studentID;
+
+    if(ftPosition!=NULL) {
+        numberStart = ftPosition + strlen("ST-");
+        // Convert the numeric part to an integer
+        studentID = atoi(numberStart);
+    }
+    else{
+        write(connFD,"wrong studentid ^",17);
+        readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+        return 0;
+    }
+
+    studentfd = open(STUDENT_FILE,O_RDONLY);
+    int offset = lseek(studentfd,(studentID-1)*sizeof(struct Student),SEEK_SET);
+    if(offset == -1){
+        perror("Error while seeking to required student record!");
+        return 0;
+    }
+    lock.l_type = F_RDLCK;
+    lock.l_start = offset;
+    int lockingStatus = fcntl(studentfd, F_SETLKW, &lock);
+    if(lockingStatus == -1){
+        perror("Error while obtaining read lock on student record!");
+        return 0;
+    }
+
+    readBytes = read(studentfd, &student, sizeof(struct Student));
+    if(readBytes == -1){
+        perror("Error while reading student record from the file!");
+        return 0;
+    }
+    else if(readBytes==0){
+        write(connFD,"wrong student id ^",18);
+        readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+        return 0;
+    }
+    lock.l_type = F_UNLCK;
+    lockingStatus = fcntl(studentfd, F_SETLK, &lock);   
+    close(studentfd);
+
+    if(strcmp(student.access,"granted")==0){
+       write(connFD,"Already active ^",17);
+       readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+       return 0;
+    } 
+    
+    strcpy(student.access,"granted");
+  
+    studentfd = open(STUDENT_FILE,O_WRONLY);
+    if(studentfd == -1){
+        perror("Error while opening student file");
+        return 0;
+    }
+    offset = lseek(studentfd, (studentID-1) * sizeof(struct Student), SEEK_SET);
+    if(offset == -1){
+        perror("Error while seeking to required student record!");
+        return 0;
+    }
+    lock.l_type = F_WRLCK;
+    lock.l_start = offset;
+    lockingStatus = fcntl(studentfd, F_SETLKW, &lock);
+    if(lockingStatus == -1){
+        perror("Error while obtaining write lock on student record!");
+        return 0;
+    }
+    
+    writeBytes = write(studentfd, &student, sizeof(struct Student));
+    if(writeBytes == -1){
+        perror("Error while writing update student info into file");
+        return 0;            
+    }
+
+    lock.l_type = F_UNLCK;
+    fcntl(studentfd, F_SETLKW, &lock);
+    close(studentfd);
+
+    writeBytes = write(connFD, "Student activated successfully ^",32);
+    if(writeBytes == -1){
+        perror("Error while writing student activate success info to client");
+        return 0;            
+    }
+    readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+    return 1; 
+}
 
 
 int log_out(int connFD){
