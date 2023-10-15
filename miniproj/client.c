@@ -1,3 +1,11 @@
+/*
+============================================================================
+Name : client.c
+Author : Subbhashit Mukherjee
+Description : This file consists of client code which connects to the server
+              and give inputs for further processing   
+============================================================================
+*/
 #include <sys/socket.h> 
 #include <netinet/ip.h> // Import for `struct sockaddr_in`, `htons`
 #include <stdio.h>      

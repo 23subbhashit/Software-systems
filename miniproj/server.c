@@ -1,3 +1,11 @@
+/*
+============================================================================
+Name : server.c
+Author : Subbhashit Mukherjee 
+Description : This file consists of code which listens for client connections
+              and connect to it through socket. Used forking for handling multiple clients  
+============================================================================
+*/
 #include<stdio.h>
 #include<sys/socket.h>
 #include<netinet/in.h>

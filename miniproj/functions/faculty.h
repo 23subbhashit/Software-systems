@@ -1,3 +1,13 @@
+/*
+============================================================================
+Name : faculty.h
+Author : Subbhashit Mukherjee
+Description : This file consists of faculty functionalities like
+              adding course, modify course details, change password, view courses
+              and logout     
+============================================================================
+*/
+
 #ifndef FACULTY_FUNCTIONS
 #define FACULTY_FUNCTIONS
 
@@ -7,6 +17,8 @@
 #include "server-constants.h"
 
 struct Faculty loggedInFaculty;
+
+// structure which is used to sort enrollment records by enrollment time 
 struct middleware{
     int myid;
     time_t mytime;
@@ -15,6 +27,7 @@ struct middleware myDict[100];
 
 
 int semid;
+
 bool lock_critical_section(struct sembuf *semOp);
 bool unlock_critical_section(struct sembuf *sem_op);
 int faculty_operation_handler(int connFD);
@@ -25,12 +38,15 @@ int modify_course(int connFD);
 int change_password(int connFD);
 int logout(int connFD);
 
+// function for faculty operations
 int faculty_operation_handler(int connFD){
+
+    // login handling
     if(login_handler(2,connFD,&loggedInFaculty,NULL)){
-        key_t semKey = ftok(FACULTY_FILE,loggedInFaculty.id); // Generate a key based on the account number hence, different customers will have different semaphores
+        key_t semKey = ftok(FACULTY_FILE,loggedInFaculty.id);
         union semun
         {
-          int val; // Value of the semaphore
+          int val; 
         } semSet;
 
         int semctlStatus;
@@ -52,13 +68,17 @@ int faculty_operation_handler(int connFD){
                 _exit(1);
             }
         }
+
         ssize_t writeBytes, readBytes;            
         char readBuffer[1000], writeBuffer[1000];
         bzero(writeBuffer, sizeof(writeBuffer));
         strcpy(writeBuffer, LOGIN_SUCCESS);
+        
         while(1){
             strcat(writeBuffer, "\n");
             strcat(writeBuffer, FACULTY_MENU);
+            
+            // displaying facutly menu
             writeBytes = write(connFD, writeBuffer, strlen(writeBuffer));
             if (writeBytes == -1)
             {
@@ -96,7 +116,9 @@ int faculty_operation_handler(int connFD){
                 logout(connFD);
                 break;    
             default:
-                return 0;
+                writeBytes = write(connFD,"wrong choice ^",14);
+                readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+                break;
             }
         }
     }
@@ -108,11 +130,11 @@ int faculty_operation_handler(int connFD){
     return 1;
 }
 
+// removing course details
 int remove_course(int connFD){
     
     ssize_t readBytes, writeBytes;
     char readBuffer[1000], writeBuffer[1000];
-
     struct Course course;
     int courseID;
     off_t offset;
@@ -131,12 +153,11 @@ int remove_course(int connFD){
         perror("Error while reading course ID from client!");
         return 0;
     }
+
     char *ftPosition = strstr(readBuffer, "C-");
     char *numberStart = NULL;
     if(ftPosition!=NULL) {
-        // Move the pointer to the character right after "C-"
         numberStart = ftPosition + strlen("C-");
-        // Convert the numeric part to an integer
         courseID = atoi(numberStart);
     }
     else{
@@ -201,17 +222,22 @@ int remove_course(int connFD){
     fcntl(courseFileDescriptor, F_SETLK, &lock);
 
     close(courseFileDescriptor);
+
+    //checking this course belongs to the loggedinfaculty
     if(strcmp(loggedInFaculty.loginid,course.facultyloginid)!=0){
         write(connFD,"Not your course to remove ^",27);
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     }
+
+    // also checking whether the course is present in the catalog or not
     else if(strcmp(course.status,"notactive")==0){
         write(connFD,"Course not found to remove ^",29);
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     }
-
+   
+    // updating course record to notactive
     courseFileDescriptor = open(COURSE_FILE, O_WRONLY);
     if (courseFileDescriptor == -1)
     {
@@ -245,16 +271,16 @@ int remove_course(int connFD){
 
     lock.l_type = F_UNLCK;
     fcntl(courseFileDescriptor, F_SETLKW, &lock);
-
     close(courseFileDescriptor);
  
-    // make uneroll for those courses
+    // make uneroll of last enrolled students for those courses
     struct Enrollment enroll;
     int enrollfd;
     bool flag=false;
     int temp1[15][10];
     int i,n;
     int count=0;
+
     enrollfd = open(ENROLL_FILE,O_RDONLY);
     while((n = read(enrollfd, &enroll, sizeof(struct Enrollment))) > 0) {
        if((strcmp(enroll.status,"enrolled")==0)  && (strcmp(enroll.courseid,readBuffer)==0)){              
@@ -265,6 +291,7 @@ int remove_course(int connFD){
        }
     }
     close(enrollfd);
+
     if(flag==true){
        for(int i=0;i<count;i++){
             enrollfd = open(ENROLL_FILE,O_RDONLY);
@@ -317,7 +344,7 @@ int remove_course(int connFD){
        }
     }
 
-
+    // success message
     writeBytes = write(connFD, DEL_COURSE_SUCCESS, strlen(DEL_COURSE_SUCCESS));
     if (writeBytes == -1)
     {
@@ -328,6 +355,7 @@ int remove_course(int connFD){
     return 1;
 }
 
+// To get sorted records according to enroll time
 int compareEnrollmentTime(const void* a, const void* b) {
     const struct middleware* enrollA = (const struct middleware*)a;
     const struct middleware* enrollB = (const struct middleware*)b;
@@ -342,15 +370,16 @@ int compareEnrollmentTime(const void* a, const void* b) {
     return strcmp(timeStrB, timeStrA);
 }
     
+// modifying course details    
 int modify_course(int connFD){
     ssize_t readBytes, writeBytes;
     char readBuffer[1000], writeBuffer[1000];
-
     struct Course course;
     int courseID;
     off_t offset;
     int lockingStatus;
 
+    // display enter course id message
     writeBytes = write(connFD, MOD_COURSE_ID, strlen(MOD_COURSE_ID));
     if (writeBytes == -1)
     {
@@ -364,12 +393,12 @@ int modify_course(int connFD){
         perror("Error while reading course ID from client!");
         return 0;
     }
+
+
     char *ftPosition = strstr(readBuffer, "C-");
     char *numberStart = NULL;
     if(ftPosition!=NULL) {
-        // Move the pointer to the character right after "C-"
         numberStart = ftPosition + strlen("C-");
-        // Convert the numeric part to an integer
         courseID = atoi(numberStart);
     }
     else{
@@ -394,6 +423,7 @@ int modify_course(int connFD){
         return 0;
     }
     
+    // checking whether our record id is greater than the last record is present
     offset = lseek(courseFileDescriptor,-sizeof(struct Course),SEEK_END);
     readBytes = read(courseFileDescriptor, &course, sizeof(struct Course));
     if (readBytes == -1)
@@ -409,8 +439,7 @@ int modify_course(int connFD){
     close(courseFileDescriptor);
     courseFileDescriptor = open(COURSE_FILE,O_RDONLY);
 
-
-
+    // seeking to the record of file
     offset = lseek(courseFileDescriptor, (courseID-1)* sizeof(struct Course), SEEK_SET);
     if (errno == EINVAL)
     {
@@ -444,11 +473,13 @@ int modify_course(int connFD){
 
     readBytes = read(courseFileDescriptor, &course, sizeof(struct Course));
     
+    // if course is not present
     if(strcmp(course.status,"notactive")==0){
         write(connFD,"Invalid course id ^",20);
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     }
+
     int noofavailseats = course.no_of_available_seats;
     int noofseatsbefore = course.no_of_seats;
     if (readBytes == -1)
@@ -460,8 +491,9 @@ int modify_course(int connFD){
     // Unlock the record
     lock.l_type = F_UNLCK;
     fcntl(courseFileDescriptor, F_SETLK, &lock);
-
     close(courseFileDescriptor);
+
+    // if course is not offered by loggedinfaculty
     if(strcmp(loggedInFaculty.loginid,course.facultyloginid)!=0){
         write(connFD,"Not your course to modify ^",27);
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
@@ -480,9 +512,12 @@ int modify_course(int connFD){
         return 0;
     }
 
+    
     int choice = atoi(readBuffer);
+
+    //validation for choice
     if (choice == 0)
-    { // A non-numeric string was passed to atoi
+    { 
         bzero(writeBuffer, sizeof(writeBuffer));
         strcpy(writeBuffer, ERRON_INPUT_FOR_NUMBER);
         writeBytes = write(connFD, writeBuffer, strlen(writeBuffer));
@@ -495,8 +530,10 @@ int modify_course(int connFD){
     }
 
     bzero(readBuffer, sizeof(readBuffer));
-    switch (choice)
-    {
+
+    switch (choice){
+    
+    // new course name
     case 1:
         writeBytes = write(connFD, MOD_COURSE_NEW_NAME, strlen(MOD_COURSE_NEW_NAME));
         if (writeBytes == -1)
@@ -510,9 +547,20 @@ int modify_course(int connFD){
             perror("Error while getting response for course's new name from client!");
             return 0;
         }
+         
+        //validation for name
+        for(int i = 0;readBuffer[i]!='\0';i++) {
+           if(!isalpha(readBuffer[i]) && !isspace(readBuffer[i])) {
+               write(connFD,"Invalid course name ^",21);
+               readBytes= read(connFD,readBuffer,sizeof(readBuffer));
+               return 0;
+            }
+        } 
+
         strcpy(course.name, readBuffer);
         break;
 
+    // new course department name
     case 2:
         writeBytes = write(connFD, MOD_COURSE_NEW_DEPARTMENT, strlen(MOD_COURSE_NEW_DEPARTMENT));
         if (writeBytes == -1)
@@ -527,9 +575,19 @@ int modify_course(int connFD){
             return 0;
         }
         
+        //validation for course dept
+        for(int i = 0;readBuffer[i]!='\0';i++) {
+            if(!isalpha(readBuffer[i]) && !isspace(readBuffer[i])) {
+                write(connFD,"Invalid deptname ^",18);
+                readBytes= read(connFD,readBuffer,sizeof(readBuffer));
+                return 0;
+            }
+        }
+    
         strcpy(course.department,readBuffer);
         break;
 
+    // new no of seats
     case 3:
         writeBytes = write(connFD, MOD_COURSE_NEW_NOOFSEATS, strlen(MOD_COURSE_NEW_NOOFSEATS));
         if (writeBytes == -1)
@@ -544,13 +602,19 @@ int modify_course(int connFD){
             return 0;
         }
         int value = atoi(readBuffer);
+
+        //validation for no of seats
         if(value<0){
             write(connFD,"Invalid total seats ^",21);
             readBytes = read(connFD,readBuffer,sizeof(readBuffer));
             return 0;
         }
+
+        // if no of seats are zero update available seats 
         if(value==0)
            course.no_of_available_seats=0;
+
+        // if new value entered is greater than before seats   
         if(value>noofseatsbefore){
             course.no_of_available_seats= course.no_of_available_seats+(value-noofseatsbefore);
         }
@@ -558,13 +622,17 @@ int modify_course(int connFD){
             int temp = value-noofseatsbefore;
             int n;
             char unenroll_course[10];
-            strcpy(unenroll_course,course.courseid); 
+            strcpy(unenroll_course,course.courseid);
+
+            // checking whether there is need to uneroll last enrolled students 
             if((course.no_of_available_seats+(temp))<0){
                 int temp2 = -1*(course.no_of_available_seats+temp);
                 course.no_of_available_seats=0;
                 int i,size;
                 struct Enrollment enroll1;
+
                 int enrollfd = open(ENROLL_FILE,O_RDWR);
+                
                 while((n = read(enrollfd, &enroll1, sizeof(struct Enrollment)))>0){
                     if((strcmp(enroll1.status,"enrolled")==0) && (strcmp(enroll1.courseid,unenroll_course)==0)){
                        myDict[i].myid= enroll1.id;
@@ -574,8 +642,12 @@ int modify_course(int connFD){
                     }                                      
                 }
                 close(enrollfd);
+                
+                // sorting records according to enroll time
                 qsort(myDict,size, sizeof(struct middleware), compareEnrollmentTime);
                 int a;
+
+                //unerolling latest enrolled students
                 while(a<temp2 && a<size){
                     int ID= myDict[a].myid;
                     struct Enrollment enroll;
@@ -636,6 +708,7 @@ int modify_course(int connFD){
         course.no_of_seats= value;
         break;
 
+    // new course credits
     case 4:
         writeBytes = write(connFD, MOD_COURSE_NEW_CREDITS, strlen(MOD_COURSE_NEW_CREDITS));
         if (writeBytes == -1)
@@ -647,6 +720,13 @@ int modify_course(int connFD){
         if (readBytes == -1)
         {
             perror("Error while getting response for course's new credits from client!");
+            return 0;
+        }
+        int vale =atoi(readBuffer);
+        
+        if(vale<=0){
+            write(connFD,"wrong credits entered ^",23);
+            readBytes = read(connFD,readBuffer,sizeof(readBuffer));
             return 0;
         }
         course.credits=atoi(readBuffer);
@@ -661,9 +741,11 @@ int modify_course(int connFD){
             perror("Error while writing INVALID_MENU_CHOICE message to client!");
             return false;
         }
+        readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     }
 
+    //updating course record
     courseFileDescriptor = open(COURSE_FILE, O_WRONLY);
     if (courseFileDescriptor == -1)
     {
@@ -697,6 +779,7 @@ int modify_course(int connFD){
 
     close(courseFileDescriptor);
 
+    // success message
     writeBytes = write(connFD, MOD_COURSE_SUCCESS, strlen(MOD_COURSE_SUCCESS));
     if (writeBytes == -1)
     {
@@ -707,11 +790,11 @@ int modify_course(int connFD){
     return 1;    
 }
 
+// Viewing course details
 int view_offering_course(int connFD){
     ssize_t readBytes, writeBytes;             
     char readBuffer[1000], writeBuffer[10000]; 
     char tempBuffer[1000];
-
     struct Course fetchcourse;
     int courseFileDescriptor;
     struct flock lock = {F_RDLCK, SEEK_SET, 0, sizeof(struct Course), getpid()};
@@ -727,6 +810,8 @@ int view_offering_course(int connFD){
         perror("Error getting course ID from client!");
         return 0;
     }
+
+    // retreiving id from course code
     char *ftPosition = strstr(readBuffer, "C-");
     char *numberStart = NULL;
     int courseID;
@@ -742,6 +827,8 @@ int view_offering_course(int connFD){
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     } 
+
+
     courseFileDescriptor = open(COURSE_FILE, O_RDONLY);
     if (courseFileDescriptor == -1)
     {
@@ -758,6 +845,7 @@ int view_offering_course(int connFD){
         return 0;
     }
 
+    // checking whether our record id is greater than last record it present
     int offset = lseek(courseFileDescriptor,-sizeof(struct Course),SEEK_END);
     readBytes = read(courseFileDescriptor, &fetchcourse, sizeof(struct Course));
     if (readBytes == -1)
@@ -765,14 +853,18 @@ int view_offering_course(int connFD){
         perror("Error reading course record from file!");
         return false;
     }
+
+    //if throw error
     if(courseID>fetchcourse.id){
         write(connFD,"Invalid course id ^",20);
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     }
     close(courseFileDescriptor);
+
     courseFileDescriptor = open(COURSE_FILE,O_RDONLY);
 
+    // seeking to the record for reading
     offset = lseek(courseFileDescriptor, (courseID-1) * sizeof(struct Course), SEEK_SET);
     if (errno == EINVAL)
     {
@@ -812,18 +904,23 @@ int view_offering_course(int connFD){
     fcntl(courseFileDescriptor, F_SETLK, &lock);
 
     bzero(writeBuffer, sizeof(writeBuffer));
+
+    // if the courseid is of not loggedinfaculty throw error
     if(strcmp(fetchcourse.facultyloginid,loggedInFaculty.loginid)!=0){
         write(connFD,NOT_YOUR_COURSE,strlen(NOT_YOUR_COURSE));
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     }
+
+    // if the course not at all present in the catalog throw error
     else if(strcmp(fetchcourse.status,"notactive")==0){
         write(connFD,"No course found ^",18);
         readBytes = read(connFD,readBuffer,sizeof(readBuffer));
         return 0;
     }
-    sprintf(writeBuffer, "********* Course Details *********  \n\tName: %s\n\tDepartment : %s\n\tNo of Seats: %d\n\tCredits : %d\n\tNo of available seats: %d\n\tCourse-id: %s", fetchcourse.name, fetchcourse.department,fetchcourse.no_of_seats,fetchcourse.credits,fetchcourse.no_of_available_seats,fetchcourse.courseid);
 
+    // displaying course details
+    sprintf(writeBuffer, "********* Course Details *********  \n\tName: %s\n\tDepartment : %s\n\tNo of Seats: %d\n\tCredits : %d\n\tNo of available seats: %d\n\tCourse-id: %s", fetchcourse.name, fetchcourse.department,fetchcourse.no_of_seats,fetchcourse.credits,fetchcourse.no_of_available_seats,fetchcourse.courseid);
     strcat(writeBuffer, "\n\nYou'll now be redirected to the Faculty menu ^");
 
     writeBytes = write(connFD, writeBuffer, strlen(writeBuffer));
@@ -832,13 +929,13 @@ int view_offering_course(int connFD){
         perror("Error writing course info to client!");
         return 0;
     }
-    readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+    readBytes = read(connFD,readBuffer,sizeof(readBuffer)); //dummy read
     return true;
 }
 
 int logout(int connFD){
-    ssize_t readBytes, writeBytes;             // Number of bytes read from / written to the socket
-    char readBuffer[1000], writeBuffer[10000]; // A buffer for reading from / writing to the socket
+    ssize_t readBytes, writeBytes;             
+    char readBuffer[1000], writeBuffer[10000]; 
     char tempBuffer[1000];
     write(connFD,LOG_OUT,strlen(LOG_OUT));
     close(connFD);
@@ -848,7 +945,6 @@ int logout(int connFD){
 int change_password(int connFD){
    ssize_t readBytes, writeBytes;
     char readBuffer[1000], writeBuffer[1000], hashedPassword[1000];
-
     char newPassword[1000];
 
     // Lock the critical section
@@ -860,6 +956,7 @@ int change_password(int connFD){
         return false;
     }
 
+    // Enter your old password
     writeBytes = write(connFD, PASSWORD_CHANGE_OLD_PASS, strlen(PASSWORD_CHANGE_OLD_PASS));
     if (writeBytes == -1)
     {
@@ -877,9 +974,10 @@ int change_password(int connFD){
         return 0;
     }
 
+    // If password matches with the password
     if (strcmp(crypt(readBuffer, SALT_BAE), loggedInFaculty.password) == 0)
     {
-        // Password matches with old password
+        // Asking for the new password
         writeBytes = write(connFD, PASSWORD_CHANGE_NEW_PASS, strlen(PASSWORD_CHANGE_NEW_PASS));
         if (writeBytes == -1)
         {
@@ -898,6 +996,7 @@ int change_password(int connFD){
 
         strcpy(newPassword, crypt(readBuffer, SALT_BAE));
 
+        //Asking to reenter the new password
         writeBytes = write(connFD, PASSWORD_CHANGE_NEW_PASS_RE, strlen(PASSWORD_CHANGE_NEW_PASS_RE));
         if (writeBytes == -1)
         {
@@ -914,12 +1013,11 @@ int change_password(int connFD){
             return false;
         }
 
+
+         // New & reentered passwords match
         if (strcmp(crypt(readBuffer, SALT_BAE), newPassword) == 0)
         {
-            // New & reentered passwords match
-
             strcpy(loggedInFaculty.password, newPassword);
-
             int facultyFileDescriptor = open(FACULTY_FILE, O_WRONLY);
             if (facultyFileDescriptor == -1)
             {
@@ -928,6 +1026,7 @@ int change_password(int connFD){
                 return false;
             }
 
+            //seek to the record to change the password attribute
             off_t offset = lseek(facultyFileDescriptor, (loggedInFaculty.id-1) * sizeof(struct Faculty), SEEK_SET);
             if (offset == -1)
             {
@@ -983,6 +1082,7 @@ int change_password(int connFD){
     return 0;  
 }
 
+// locking
 bool unlock_critical_section(struct sembuf *semOp)
 {
     semOp->sem_op = 1;
@@ -1009,12 +1109,13 @@ bool lock_critical_section(struct sembuf *semOp)
     return true;
 }
 
+// Adding course details
 int add_course(int connFD){
     ssize_t readBytes, writeBytes;
     char readBuffer[1000], writeBuffer[1000];
-
     struct Course newCourse;
     struct Course prevCourse;
+
 
     int courseFileDescriptor = open(COURSE_FILE, O_RDONLY);
     if (courseFileDescriptor == -1 && errno == ENOENT)
@@ -1029,6 +1130,7 @@ int add_course(int connFD){
     }
     else
     {
+        // getting the id of last record
         int offset = lseek(courseFileDescriptor, -sizeof(struct Course), SEEK_END);
         if (offset == -1)
         {
@@ -1058,6 +1160,7 @@ int add_course(int connFD){
 
         newCourse.id = prevCourse.id+1;
     }
+
     // course name 
     writeBytes = write(connFD, ADD_COURSE_NAME,strlen(ADD_COURSE_NAME));
     if (writeBytes == -1)
@@ -1073,7 +1176,17 @@ int add_course(int connFD){
         perror("Error reading course name from client!");
         return 0;
     }
+
+    //validation for course name
+    for(int i = 0;readBuffer[i]!='\0';i++) {
+        if(!isalpha(readBuffer[i]) && !isspace(readBuffer[i])) {
+            write(connFD,"Invalid  course name ^",21);
+            readBytes= read(connFD,readBuffer,sizeof(readBuffer));
+            return 0;
+        }
+    }
     strcpy(newCourse.name,readBuffer);
+
 
     // course department 
     writeBytes = write(connFD, ADD_COURSE_DEPARTMENT,strlen(ADD_COURSE_DEPARTMENT));
@@ -1089,6 +1202,15 @@ int add_course(int connFD){
     {
         perror("Error reading course department  from client!");
         return 0;
+    }
+
+    //validation for course department
+    for(int i = 0;readBuffer[i]!='\0';i++) {
+        if(!isalpha(readBuffer[i]) && !isspace(readBuffer[i])) {
+            write(connFD,"Invalid dept name ^",19);
+            readBytes= read(connFD,readBuffer,sizeof(readBuffer));
+            return 0;
+        }
     }
     strcpy(newCourse.department,readBuffer);
 
@@ -1108,7 +1230,15 @@ int add_course(int connFD){
         return 0;
     }
     int seats = atoi(readBuffer);
+
+    // validation for no of seats
+    if(seats<=0){
+        write(connFD,"Invalid no of seats ^",21);
+        readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+        return 0;
+    }
     newCourse.no_of_seats= seats;
+
 
     // credits
     writeBytes = write(connFD, ADD_COURSE_CREDITS,strlen(ADD_COURSE_CREDITS));
@@ -1126,12 +1256,20 @@ int add_course(int connFD){
         return 0;
     }
     int credits = atoi(readBuffer);
+
+    // validation for credits
+    if(credits<=0){
+        write(connFD,"Invalid credits ^",17);
+        readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+        return 0;
+    }
     newCourse.credits= credits;
      
+    
     // no of available seats
     newCourse.no_of_available_seats=seats;
 
-    //courseid
+    //coursecode
     char y[4];
     strcpy(newCourse.courseid,"C-");
     sprintf(y ,"%d",newCourse.id);
@@ -1142,6 +1280,8 @@ int add_course(int connFD){
 
     //course status
     strcpy(newCourse.status,"active");
+    
+    // creating course record in file
     courseFileDescriptor = open(COURSE_FILE, O_CREAT|O_APPEND|O_WRONLY,S_IRWXU);
     if (courseFileDescriptor == -1)
     {
@@ -1157,12 +1297,13 @@ int add_course(int connFD){
     }
 
     close(courseFileDescriptor);
-
     bzero(writeBuffer, sizeof(writeBuffer));
+    
+    //success message
     sprintf(writeBuffer, "%s%s%d", ADD_COURSE_SUCCESS, newCourse.courseid,newCourse.id);
     writeBytes = write(connFD, writeBuffer, sizeof(writeBuffer));
     
-    readBytes = read(connFD,readBuffer,sizeof(readBuffer));
+    readBytes = read(connFD,readBuffer,sizeof(readBuffer)); //dummy read
     return 1;
 }
 

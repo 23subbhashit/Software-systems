@@ -1,3 +1,10 @@
+/*
+============================================================================
+Name : admin-credentials.h
+Author : Subbhashit Mukherjee
+Description : This file consists of admin credentials 
+============================================================================
+*/
 #ifndef ADMIN_CREDENTIALS
 #define ADMIN_CREDENTIALS
 

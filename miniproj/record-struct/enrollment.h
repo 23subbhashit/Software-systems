@@ -1,3 +1,10 @@
+/*
+============================================================================
+Name : enrollment.h
+Author : Subbhashit Mukherjee
+Description : Enrollment Structure 
+============================================================================
+*/
 #ifndef ENROLLMENT_RECORD
 #define ENROLLMENT_RECORD
 

@@ -1,3 +1,10 @@
+/*
+============================================================================
+Name : faculty.h
+Author : Subbhashit Mukherjee
+Description : Faculty Structure 
+============================================================================
+*/
 #ifndef FACULTY_RECORD
 #define FACULTY_RECORD
 

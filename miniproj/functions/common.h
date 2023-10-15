@@ -1,3 +1,12 @@
+/*
+============================================================================
+Name : common.h
+Author : Subbhashit Mukherjee
+Description : This file consists of common login function which handles
+              whether the credentials are correct or wrong of admin,student
+              and faculty    
+============================================================================
+*/
 #include <stdio.h>     
 #include <unistd.h>    
 #include <string.h>    

@@ -1,3 +1,10 @@
+/*
+============================================================================
+Name : course.h
+Author : Subbhashit Mukherjee
+Description : Course Structure 
+============================================================================
+*/
 #ifndef COURSE_RECORD
 #define COURSE_RECORD
 

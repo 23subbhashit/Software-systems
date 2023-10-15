@@ -1,3 +1,10 @@
+/*
+============================================================================
+Name : student.h
+Author : Subbhashit Mukherjee
+Description : Student Structure 
+============================================================================
+*/
 #ifndef STUDENT_RECORD
 #define STUDENT_RECORD
 

@@ -1,3 +1,10 @@
+/*
+============================================================================
+Name : server-constants.h
+Author : Subbhashit Mukherjee
+Description : This file consists of all constants we use while displaying messages
+============================================================================
+*/
 #define INITIAL_PROMPT "\t.......... Welcome Back To Academia :: Course Registration..........\nLogin Type\nEnter Your Choice {1.Admin, 2.Faculty, 3.Student}:"
 #define LOGIN_SUCCESS "\nLogin Successful!\n"
 #define ADMIN_MENU "......Welcome to Admin Menu......\n\t1.Add Student\n\t2.View Student Details\n\t3.Add Faculty\n\t4.View Faculty Details\n\t5.Activate Student\n\t6.Block Student\n\t7.Modify Student Details\n\t8.Modify Faculty Details\n\t9.Logout and Exit\n\nChoose option:"
